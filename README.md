@@ -2,9 +2,20 @@
 
 ## About
 
-This project enables user to get GEL (Georgian Lari) conversion rates. The project scrapes [National Bank of Georgia's Website](https://nbg.gov.ge/en/monetary-policy/currency) and parses currency data. Users are able to specify format and filename to save data in different formats.
+This project is a CLI tool that enables user to get GEL (Georgian Lari)
+conversion rates. The project scrapes
+[National Bank of Georgia](https://nbg.gov.ge/en/monetary-policy/currency)'s
+website and parses currency data. Users are able to specify format and filename
+from CLI to generate data in different formats, or build and run the binary and
+generate all formats at once.
 
-Format can be **json-array**, **json-map** or **csv**.
+## Setup
+
+```bash
+go mod tidy
+go mod download
+go build -o bin/ ./cmd
+```
 
 ## Usage
 
@@ -12,10 +23,24 @@ Format can be **json-array**, **json-map** or **csv**.
 go run ./cmd <format> <file name>
 ```
 
+Arguments **format** and **filename** are optional.
+
+When both arguments are omitted, program will generate files for all supported
+formats with default generated names.
+
+When **filename** is omitted, program will generate a file for provided
+**format** with a default generated name.
+
+Supported formats are: **json-array**, **json-map**, **csv**.
+
 ## Examples
 
 ```bash
-go run ./cmd json-array currencies-array.json
+go run ./cmd
+```
+
+```bash
+go run ./cmd json-array
 ```
 
 ```bash

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -105,6 +106,9 @@ const (
 // Fetches currencies and their conversion rates relative to GEL from
 // https://nbg.gov.ge/en/monetary-policy/currency
 func FetchCurrencies() (Currencies, error) {
+	fmt.Println("Fetching currencies...")
+	fetchStart := time.Now()
+
 	resp, err := http.Get(NBG_CURRENCIES_URL)
 	if err != nil {
 		return nil, err
@@ -137,6 +141,11 @@ func FetchCurrencies() (Currencies, error) {
 
 		currencies = append(currencies, Currency{index, conversionRate})
 	})
+
+	fmt.Printf(
+		"Currencies fetched in %d milliseconds.\n",
+		time.Since(fetchStart)/time.Millisecond,
+	)
 
 	return currencies, nil
 }
