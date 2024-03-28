@@ -1,5 +1,5 @@
 # Binaries for programs and plugins
-bin/
+bin
 *.exe
 *.exe~
 *.dll
@@ -20,3 +20,6 @@ go.work
 
 # Misc
 .DS_STORE
+
+# Generated currency data files
+nbg-currencies-*

@@ -3,80 +3,81 @@ package main
 import (
 	"fmt"
 	"os"
+
+	"nbg-currencies/internal/currency"
+	"nbg-currencies/internal/multiselect"
 )
 
-func printUsageHelp() {
-	fmt.Println("Usage: go run ./cmd <format> <filename>")
-	fmt.Println("Arguments <format> and <filename> are optional.")
-	fmt.Println(
-		"When both arguments are omitted, program will generate",
-		"files for all supported formats with default generated names.",
-	)
-	fmt.Println(
-		"When <filename> is omitted, program will generate",
-		"a file for provided <format> with a default generated name.",
-	)
-	fmt.Println("Supported formats are: json-array, json-map, csv")
-	fmt.Println("Examples: \n\tgo run ./cmd")
-	fmt.Println("\tgo run ./cmd json-array")
-	fmt.Println("\tgo run ./cmd json-map currencies-map.json")
-	fmt.Println("\tgo run ./cmd csv currencies.csv")
+func hangUntilEnter() {
+	fmt.Print("\nPress enter to exit...\n")
+	fmt.Scanln()
 }
 
 func main() {
-	args := os.Args
+	selectedFormatIndexes, submittedOnQuit, err := multiselect.PromptMultiselect(
+		"Which file format(s) do you want to generate for currencies?",
+		currency.SupportedFormats,
+	)
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+		hangUntilEnter()
+		os.Exit(1)
+	}
 
-	if len(args) <= 1 {
-		currencies, err := FetchCurrencies()
-		if err != nil {
-			fmt.Printf("Failed to fetch currencies: %s\n", err)
-			os.Exit(1)
-		}
+	if selectedFormatIndexes.IsEmpty() {
+		fmt.Println("No file formats selected.")
 
-		err = WriteCurrenciesToDefaultFilesWithAllFormats(currencies)
-		if err != nil {
-			fmt.Printf("Error: %s\n", err)
-			os.Exit(1)
+		if submittedOnQuit {
+			hangUntilEnter()
 		}
 
 		return
 	}
 
-	if len(args) > 3 || (args[1] == "-h") || (args[1] == "--help") {
-		printUsageHelp()
-		os.Exit(0)
+	selectedFormats := make([]string, 0, len(selectedFormatIndexes))
+	for i := range selectedFormatIndexes {
+		selectedFormats = append(selectedFormats, currency.SupportedFormats[i])
 	}
 
-	format := args[1]
-	var fileName string
-
-	if len(args) == 3 {
-		fileName = args[2]
-	} else {
-		fileName = GetDefaultFileNameFromFormat(format)
+	fmt.Print("Selected formats: ")
+	for i, format := range selectedFormats {
+		fmt.Print(format)
+		if i != len(selectedFormats)-1 {
+			fmt.Print(", ")
+		} else {
+			fmt.Print(".\n\n")
+		}
 	}
 
-	if !IsSupportedFormat(format) {
-		fmt.Printf("Invalid format: %s\n", format)
-		printUsageHelp()
-		os.Exit(1)
-	}
-
-	err := ValidateFileName(fileName, true)
-	if err != nil {
-		fmt.Printf("Error: %s\n", err)
-		os.Exit(1)
-	}
-
-	currencies, err := FetchCurrencies()
+	currencies, elapsedMs, err := currency.FetchCurrencies()
 	if err != nil {
 		fmt.Printf("Failed to fetch currencies: %s\n", err)
+		hangUntilEnter()
 		os.Exit(1)
 	}
 
-	err = WriteCurrenciesToFileWithFormat(currencies, format, fileName)
-	if err != nil {
-		fmt.Printf("Error: %s\n", err)
-		os.Exit(1)
+	fmt.Printf(
+		"Successfully fetched currencies in %d milliseconds.\n", elapsedMs,
+	)
+
+	for _, format := range selectedFormats {
+		fileName, err := currency.GenerateDefaultFileNameFromFormat(format)
+		if err != nil {
+			fmt.Printf("Couldn't generate file name: %s\n", err)
+			continue
+		}
+
+		err = currency.WriteCurrenciesToFile(currencies, format, fileName)
+		if err != nil {
+			fmt.Printf("Couldn't write currencies to file: %s\n", err)
+			continue
+		}
+
+		fmt.Printf(
+			"Successfully written currencies to file %s in %s format.\n",
+			fileName, format,
+		)
 	}
+
+	hangUntilEnter()
 }

@@ -2,51 +2,49 @@
 
 ## About
 
-This project is a CLI tool that enables user to get GEL (Georgian Lari)
-conversion rates. The project scrapes
+This project is a simple golang TUI (Terminal User Interface) tool that enables
+user to get GEL (Georgian Lari) conversion rates. The project scrapes
 [National Bank of Georgia](https://nbg.gov.ge/en/monetary-policy/currency)'s
-website and parses currency data. Users are able to specify format and filename
-from CLI to generate data in different formats, or build and run the binary and
-generate all formats at once.
+website and parses currency data. Users are able to specify file formats from
+TUI to generate data in different formats.
+
+Project uses [goquery](https://github.com/PuerkitoBio/goquery) for parsing HTML
+and [bubbletea](https://github.com/charmbracelet/bubbletea) to build the
+terminal user interface.
+
+Supported formats are: **json-array**, **json-map**, **csv**.
 
 ## Setup
 
 ```bash
+make setup
+
+# or
+
 go mod tidy
 go mod download
-go build -o bin/ ./cmd
 ```
 
 ## Usage
 
-```bash
-go run ./cmd <format> <file name>
-```
-
-Arguments **format** and **filename** are optional.
-
-When both arguments are omitted, program will generate files for all supported
-formats with default generated names.
-
-When **filename** is omitted, program will generate a file for provided
-**format** with a default generated name.
-
-Supported formats are: **json-array**, **json-map**, **csv**.
-
-## Examples
+### From Command Line
 
 ```bash
+make run
+
+# or
+
 go run ./cmd
 ```
 
-```bash
-go run ./cmd json-array
-```
+### From Binary Executable
 
 ```bash
-go run ./cmd json-map currencies-map.json
-```
+make build
+make launch
 
-```bash
-go run ./cmd csv currencies.csv
+# or
+
+go build -o bin/ ./cmd
+./bin/cmd
 ```
